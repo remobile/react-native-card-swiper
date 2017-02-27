@@ -9,6 +9,7 @@ var {
     Animated,
     InteractionManager,
 } = ReactNative;
+var _ = require('lodash');
 
 module.exports = React.createClass({
     getDefaultProps() {
@@ -18,13 +19,12 @@ module.exports = React.createClass({
             ratio: 0.872
         };
     },
-    initialWidthProps(props) {
-        const {list, width, height, vertical} = props;
+    getInitialState() {
+        const {list, width, height, vertical} = this.props;
         const size = vertical ? height : width;
         this.blockSize = size*0.708;
         this.moveDistance = size*0.733;
         this.offset = this.moveDistance-((size-this.moveDistance)/2);
-        this.currentPageFloat = 0;
 
         this.count = list.length;
         this.list = [list[this.count-2], list[this.count-1], ...list, list[0], list[1]];
@@ -37,11 +37,31 @@ module.exports = React.createClass({
         }
         return {scaleArr, translateArr};
     },
-    getInitialState() {
-        return this.initialWidthProps(this.props);
-    },
     componentWillReceiveProps(nextProps) {
-        this.setState(this.initialWidthProps(nextProps));
+        const {list, width, height, vertical} = nextProps;
+        const {list: _list, width: _width, height: _height, vertical: _vertical} = this.props;
+        if (width !== _width || height !== _height || vertical !== _vertical) {
+            const size = vertical ? height : width;
+            this.blockSize = size*0.708;
+            this.moveDistance = size*0.733;
+            this.offset = this.moveDistance-((size-this.moveDistance)/2);
+        }
+
+        if (this.count !== _list.length) {
+            this.count = list.length;
+
+            const scaleArr = [];
+            const translateArr = [];
+            for(let i = 0; i < this.count+4; i++) {
+                scaleArr.push(new Animated.Value(0));
+                translateArr.push(new Animated.Value(0));
+            }
+            this.setState({scaleArr, translateArr});
+        }
+
+        if (!_.isEqual(list, _list)) {
+            this.list = [list[this.count-2], list[this.count-1], ...list, list[0], list[1]];
+        }
     },
     componentDidMount() {
         const {vertical} = this.props;
@@ -88,6 +108,7 @@ module.exports = React.createClass({
     },
     scrollTo(index) {
         const {vertical} = this.props;
+        this.scrollTargetIndex = index;
         this.mainScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * index + this.offset, animated: true});
         this.assistScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * index, animated: true});
     },
@@ -112,7 +133,11 @@ module.exports = React.createClass({
         const {loop, list, width, height, vertical, ratio, onChange} = this.props;
         const index = loop ? (Math.round(currentPageFloat)+2)%this.count : Math.round(currentPageFloat);
         if (this.lastChangeIndex !== index) {
-            onChange && onChange(list[index], index);
+            if (this.scrollTargetIndex == null) {
+                onChange && onChange(list[index], index);
+            } else if (this.scrollTargetIndex === index) {
+                this.scrollTargetIndex = null;
+            }
             this.lastChangeIndex = index;
         }
 
