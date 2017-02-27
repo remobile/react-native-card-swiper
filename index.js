@@ -26,15 +26,11 @@ module.exports = React.createClass({
         this.offset = this.moveDistance-((size-this.moveDistance)/2);
         this.currentPageFloat = 0;
 
-        this.list = list;
         this.count = list.length;
-        this.list.unshift(this.list[this.list.length-1]);
-        this.list.unshift(this.list[this.list.length-2]);
-        this.list.push(this.list[2]);
-        this.list.push(this.list[3]);
+        this.list = [list[this.count-2], list[this.count-1], ...list, list[0], list[1]];
 
-        let scaleArr = [];
-        let translateArr = [];
+        const scaleArr = [];
+        const translateArr = [];
         for(let i = 0; i < this.count+4; i++) {
             scaleArr.push(new Animated.Value(0));
             translateArr.push(new Animated.Value(0));
@@ -60,7 +56,7 @@ module.exports = React.createClass({
             if (!loop && (i < 1 || i >= this.list.length-3)) {
                 return <View key={i} style = {{width: vertical?width:this.moveDistance, height: vertical?this.moveDistance:height}} />
             }
-            let margin = (this.moveDistance-this.blockSize)/2;
+            const margin = (this.moveDistance-this.blockSize)/2;
             return(
                 <View key={i} style = {{flexDirection: vertical?'column':'row'}}>
                     <View style = {{[vertical?'height':'width']: margin}} />
@@ -73,7 +69,7 @@ module.exports = React.createClass({
         })
     },
     getAssistViews() {
-        const {loop, width, height, vertical} = this.props;
+        const {list, loop, width, height, vertical} = this.props;
         const count = this.count + (loop ? 2 : 0);
         const margin = (this.moveDistance-this.blockSize)/2;
         const views = [];
@@ -81,7 +77,7 @@ module.exports = React.createClass({
             views.push(
                 <View key = {i} style = {{flexDirection: vertical?'column':'row'}}>
                     <View style = {{[vertical?'height':'width']: margin}} />
-                    <TouchableOpacity onPress = {() => this.props.onPress(this.list[i+(loop?1:2)])}>
+                    <TouchableOpacity onPress = {() => this.props.onPress(list[loop ? (i+2)%this.count : i], loop ? (i+2)%this.count : i)}>
                         <View style = {{width: vertical?width:this.blockSize, height: vertical?this.blockSize:height}} />
                     </TouchableOpacity>
                     <View style = {{[vertical?'height':'width']: margin}} />
@@ -90,10 +86,15 @@ module.exports = React.createClass({
         }
         return views;
     },
+    scrollTo(index) {
+        const {vertical} = this.props;
+        this.mainScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * index + this.offset, animated: true});
+        this.assistScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * index, animated: true});
+    },
     onScroll(e) {
         const {loop, vertical} = this.props;
         if(this.mainScroll && this.assistScroll) {
-            let val = e.nativeEvent.contentOffset[vertical?'y':'x'];
+            const val = e.nativeEvent.contentOffset[vertical?'y':'x'];
             if (loop && Math.abs(val - ((this.count + 1) * this.moveDistance)) < 0.5) {
                 this.mainScroll.scrollTo({[vertical?'y':'x']: this.moveDistance + this.offset, animated: false});
                 this.assistScroll.scrollTo({[vertical?'y':'x']: this.moveDistance, animated: false});
@@ -103,21 +104,21 @@ module.exports = React.createClass({
             } else {
                 this.mainScroll.scrollTo({[vertical?'y':'x']: val + this.offset, animated: false});
             }
-            let currentPageFloat = val / this.moveDistance;
+            const currentPageFloat = val / this.moveDistance;
             this.cardAnimated(currentPageFloat);
         }
     },
     cardAnimated(currentPageFloat) {
-        const {loop, width, height, vertical, ratio, onChange} = this.props;
-        let index = loop ? (Math.round(currentPageFloat)+1)%this.count : (Math.round(currentPageFloat)+2)%this.count;
+        const {loop, list, width, height, vertical, ratio, onChange} = this.props;
+        const index = loop ? (Math.round(currentPageFloat)+2)%this.count : Math.round(currentPageFloat);
         if (this.lastChangeIndex !== index) {
-            onChange && onChange(this.list[index]);
+            onChange && onChange(list[index], index);
             this.lastChangeIndex = index;
         }
 
         for(let i = 0; i < this.count+4; i++) {
             let r = 0;
-            let currentPageInt = parseInt(currentPageFloat);
+            const currentPageInt = parseInt(currentPageFloat);
             if (i == 2) {
                 r = Math.abs(currentPageFloat - (this.count + 1)) < 0.1 ? 1 : 0;
             }
@@ -129,8 +130,8 @@ module.exports = React.createClass({
             } else if (i - 1 == currentPageInt + 1) {
                 r = currentPageFloat % 1;
             }
-            let scale = ratio + ((1 - ratio) * r);
-            let translate = (vertical?width:height) * (1 - scale) / 8;
+            const scale = ratio + ((1 - ratio) * r);
+            const translate = (vertical?width:height) * (1 - scale) / 8;
             Animated.timing(this.state.scaleArr[i], {
                 toValue: scale,
                 duration: 0

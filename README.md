@@ -34,11 +34,11 @@ module.exports = React.createClass({
             </View>
         )
     },
-    onPressRow(obj) {
-        console.log('onPressRow', obj);
+    onPressRow(obj, index) {
+        console.log('onPressRow', obj, index);
     },
-    onChange(obj) {
-        console.log('onChange', obj);
+    onChange(obj, index) {
+        console.log('onChange', obj, index);
     },
     render() {
         const {vertical} = this.props;
@@ -88,3 +88,6 @@ var styles = StyleSheet.create({
 - `renderRow: PropTypes.func [args: data]` row render function
 - `onPress: PropTypes.func [args: data]` row press callback function
 - `onChange: PropTypes.func [args: data]` row change callback function
+
+#### Method
+- `scrollTo(index)` scroll to index card
