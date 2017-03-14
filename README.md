@@ -81,6 +81,7 @@ var styles = StyleSheet.create({
 
 #### Props
 - `list: PropTypes.list` card data list
+- `index: PropTypes.number` card initial index: default(0)
 - `width: PropTypes.number.required` card item width
 - `height: PropTypes.number.required` card item height
 - `loop: propTypes.boolean` swiper is loop: default(false)

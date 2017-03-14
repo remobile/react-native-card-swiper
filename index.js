@@ -14,6 +14,7 @@ var _ = require('lodash');
 module.exports = React.createClass({
     getDefaultProps() {
         return {
+            index: 0,
             vertical: false,
             loop: false,
             ratio: 0.872
@@ -66,8 +67,8 @@ module.exports = React.createClass({
     componentDidMount() {
         const {vertical} = this.props;
         InteractionManager.runAfterInteractions(() => {
-            this.mainScroll.scrollTo({[vertical?'y':'x']: this.offset+1, animated: false});
-            this.assistScroll.scrollTo({[vertical?'y':'x']: 1, animated: false});
+            this.mainScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * index||1) + this.offset, animated: false});
+            this.assistScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * index||1), animated: false});
         });
     },
     getShowViews() {
