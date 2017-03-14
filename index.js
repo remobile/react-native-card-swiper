@@ -65,7 +65,7 @@ module.exports = React.createClass({
         }
     },
     componentDidMount() {
-        const {vertical} = this.props;
+        const {vertical, index} = this.props;
         InteractionManager.runAfterInteractions(() => {
             this.mainScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * index||1) + this.offset, animated: false});
             this.assistScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * index||1), animated: false});
@@ -180,8 +180,8 @@ module.exports = React.createClass({
                     >
                     {this.getShowViews()}
                 </ScrollView>
-                <View style = {vertical ? {position: 'absolute', height: (height-this.moveDistance)/2, width, top: 0, left: 0} : {width: (width-this.moveDistance)/2, height, position: 'absolute', left: 0, top: 0}} />
-                <View style = {vertical ? {position: 'absolute', height: (height-this.moveDistance)/2, width, bottom: 0, left: 0} : {width: (width-this.moveDistance)/2, height, position: 'absolute', right: 0, top: 0}} />
+                <View style = {[{position: 'absolute', left: 0, top: 0, backgroundColor:'transparent'}, vertical ? { height: (height-this.moveDistance)/2, width} : {width: (width-this.moveDistance)/2, height}]} />
+                <View style = {[{position: 'absolute', backgroundColor:'transparent'}, vertical ? {height: (height-this.moveDistance)/2, width, bottom: 0, left: 0} : {width: (width-this.moveDistance)/2, height, right: 0, top: 0}]} />
                 <ScrollView
                     style = {vertical ? {position: 'absolute', height: this.moveDistance, width, top: (height-this.moveDistance)/2, left: 0} : {position: 'absolute', width: this.moveDistance, height, left: (width-this.moveDistance)/2, top: 0}}
                     horizontal = {!vertical}
