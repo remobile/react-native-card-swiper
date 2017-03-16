@@ -10,14 +10,16 @@ var {
     InteractionManager,
 } = ReactNative;
 var _ = require('lodash');
+var TimerMixin = require('react-timer-mixin');
 
 module.exports = React.createClass({
+    mixins: [TimerMixin],
     getDefaultProps() {
         return {
             index: 0,
             vertical: false,
             loop: false,
-            ratio: 0.872
+            ratio: 0.872,
         };
     },
     getInitialState() {
@@ -33,7 +35,7 @@ module.exports = React.createClass({
         const scaleArr = [];
         const translateArr = [];
         for(let i = 0; i < this.count+4; i++) {
-            scaleArr.push(new Animated.Value(0));
+            scaleArr.push(new Animated.Value(1));
             translateArr.push(new Animated.Value(0));
         }
         return {scaleArr, translateArr};
@@ -54,7 +56,7 @@ module.exports = React.createClass({
             const scaleArr = [];
             const translateArr = [];
             for(let i = 0; i < this.count+4; i++) {
-                scaleArr.push(new Animated.Value(0));
+                scaleArr.push(new Animated.Value(1));
                 translateArr.push(new Animated.Value(0));
             }
             this.setState({scaleArr, translateArr});
@@ -65,25 +67,27 @@ module.exports = React.createClass({
         }
     },
     componentDidMount() {
-        const {vertical, index} = this.props;
-        InteractionManager.runAfterInteractions(() => {
-            this.mainScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * index||1) + this.offset, animated: false});
-            this.assistScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * index||1), animated: false});
-        });
+        const {vertical, index, loop} = this.props;
+        this.setTimeout(()=>{
+            this.assistScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * (loop ? index+1 : index)||1), animated: false});
+            this.setTimeout(()=>{
+                this.setState({initialized: true});
+            }, 100);
+        }, 100);
     },
     getShowViews() {
         const {loop, width, height, vertical} = this.props;
         return this.list.map((o, i) => {
             if (!loop && (i < 1 || i >= this.list.length-3)) {
-                return <View key={i} style = {{width: vertical?width:this.moveDistance, height: vertical?this.moveDistance:height}} />
+                return <View key={i} style = {{width: vertical?width:this.moveDistance, height: vertical?this.moveDistance:height}}/>
             }
             const margin = (this.moveDistance-this.blockSize)/2;
             return(
                 <View key={i} style = {{flexDirection: vertical?'column':'row'}}>
                     <View style = {{[vertical?'height':'width']: margin}} />
-                    <Animated.View style = {{width: vertical?width:this.blockSize, height: vertical?this.blockSize:height, transform: [{[vertical?'scaleX':'scaleY']: this.state.scaleArr[i]}, {[vertical?'translateX':'translateY']: this.state.translateArr[i]}]}}>
-                        {this.props.renderRow(this.list[i+(loop?0:1)])}
-                    </Animated.View>
+                        <Animated.View style = {{width: vertical?width:this.blockSize, height: vertical?this.blockSize:height, transform: [{[vertical?'scaleX':'scaleY']: this.state.scaleArr[i]}, {[vertical?'translateX':'translateY']: this.state.translateArr[i]}]}}>
+                            {this.props.renderRow(this.list[i+(loop?0:1)])}
+                        </Animated.View>
                     <View style = {{[vertical?'height':'width']: margin}} />
                 </View>
             )
@@ -110,7 +114,6 @@ module.exports = React.createClass({
     scrollTo(index) {
         const {vertical} = this.props;
         this.scrollTargetIndex = index;
-        this.mainScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * index + this.offset, animated: true});
         this.assistScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * index, animated: true});
     },
     onScroll(e) {
@@ -170,6 +173,8 @@ module.exports = React.createClass({
     },
     render() {
         const {width, height, vertical} = this.props;
+        const totalWidth = (vertical?width:this.moveDistance)*this.list.length;
+        const totalHeight = (vertical?this.moveDistance:height)*this.list.length;
         return (
             <View style={{width, height, overflow: 'hidden'}}>
                 <ScrollView
@@ -178,7 +183,7 @@ module.exports = React.createClass({
                     ref = {ref => this.mainScroll = ref}
                     showsHorizontalScrollIndicator = {false}
                     >
-                    {this.getShowViews()}
+                    {this.state.initialized ? this.getShowViews(): <View style = {{width: totalWidth, height: totalHeight}} />}
                 </ScrollView>
                 <View style = {[{position: 'absolute', left: 0, top: 0, backgroundColor:'transparent'}, vertical ? { height: (height-this.moveDistance)/2, width} : {width: (width-this.moveDistance)/2, height}]} />
                 <View style = {[{position: 'absolute', backgroundColor:'transparent'}, vertical ? {height: (height-this.moveDistance)/2, width, bottom: 0, left: 0} : {width: (width-this.moveDistance)/2, height, right: 0, top: 0}]} />
