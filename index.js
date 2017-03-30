@@ -1,20 +1,20 @@
 'use strict';
 
-var React = require('react');
-var ReactNative = require('react-native');
-var {
+const React = require('react');
+const ReactNative = require('react-native');
+const {
     View,
     TouchableOpacity,
     ScrollView,
     Animated,
     InteractionManager,
 } = ReactNative;
-var _ = require('lodash');
-var TimerMixin = require('react-timer-mixin');
+const _ = require('lodash');
+const TimerMixin = require('react-timer-mixin');
 
 module.exports = React.createClass({
     mixins: [TimerMixin],
-    getDefaultProps() {
+    getDefaultProps () {
         return {
             index: 0,
             vertical: false,
@@ -22,32 +22,32 @@ module.exports = React.createClass({
             ratio: 0.872,
         };
     },
-    getInitialState() {
-        const {list, width, height, vertical} = this.props;
+    getInitialState () {
+        const { list, width, height, vertical } = this.props;
         const size = vertical ? height : width;
-        this.blockSize = size*0.708;
-        this.moveDistance = size*0.733;
-        this.offset = this.moveDistance-((size-this.moveDistance)/2);
+        this.blockSize = size * 0.708;
+        this.moveDistance = size * 0.733;
+        this.offset = this.moveDistance - ((size - this.moveDistance) / 2);
 
         this.count = list.length;
-        this.list = [list[this.count-2], list[this.count-1], ...list, list[0], list[1]];
+        this.list = [list[this.count - 2], list[this.count - 1], ...list, list[0], list[1]];
 
         const scaleArr = [];
         const translateArr = [];
-        for(let i = 0; i < this.count+4; i++) {
+        for (let i = 0; i < this.count + 4; i++) {
             scaleArr.push(new Animated.Value(1));
             translateArr.push(new Animated.Value(0));
         }
-        return {scaleArr, translateArr};
+        return { scaleArr, translateArr };
     },
-    componentWillReceiveProps(nextProps) {
-        const {list, width, height, vertical} = nextProps;
-        const {list: _list, width: _width, height: _height, vertical: _vertical} = this.props;
+    componentWillReceiveProps (nextProps) {
+        const { list, width, height, vertical } = nextProps;
+        const { list: _list, width: _width, height: _height, vertical: _vertical } = this.props;
         if (width !== _width || height !== _height || vertical !== _vertical) {
             const size = vertical ? height : width;
-            this.blockSize = size*0.708;
-            this.moveDistance = size*0.733;
-            this.offset = this.moveDistance-((size-this.moveDistance)/2);
+            this.blockSize = size * 0.708;
+            this.moveDistance = size * 0.733;
+            this.offset = this.moveDistance - ((size - this.moveDistance) / 2);
         }
 
         if (this.count !== _list.length) {
@@ -55,87 +55,87 @@ module.exports = React.createClass({
 
             const scaleArr = [];
             const translateArr = [];
-            for(let i = 0; i < this.count+4; i++) {
+            for (let i = 0; i < this.count + 4; i++) {
                 scaleArr.push(new Animated.Value(1));
                 translateArr.push(new Animated.Value(0));
             }
-            this.setState({scaleArr, translateArr});
+            this.setState({ scaleArr, translateArr });
         }
 
         if (!_.isEqual(list, _list)) {
-            this.list = [list[this.count-2], list[this.count-1], ...list, list[0], list[1]];
+            this.list = [list[this.count - 2], list[this.count - 1], ...list, list[0], list[1]];
         }
     },
-    componentDidMount() {
-        const {vertical, index, loop} = this.props;
-        this.setTimeout(()=>{
-            this.assistScroll.scrollTo({[vertical?'y':'x']: (this.moveDistance * (loop ? index+1 : index)||1), animated: false});
-            this.setTimeout(()=>{
-                this.setState({initialized: true});
+    componentDidMount () {
+        const { vertical, index, loop } = this.props;
+        this.setTimeout(() => {
+            this.assistScroll.scrollTo({ [vertical ? 'y' : 'x']: (this.moveDistance * (loop ? index + 1 : index) || 1), animated: false });
+            this.setTimeout(() => {
+                this.setState({ initialized: true });
             }, 100);
         }, 100);
     },
-    getShowViews() {
-        const {loop, width, height, vertical} = this.props;
+    getShowViews () {
+        const { loop, width, height, vertical } = this.props;
         return this.list.map((o, i) => {
-            if (!loop && (i < 1 || i >= this.list.length-3)) {
-                return <View key={i} style = {{width: vertical?width:this.moveDistance, height: vertical?this.moveDistance:height}}/>
+            if (!loop && (i < 1 || i >= this.list.length - 3)) {
+                return <View key={i} style={{ width: vertical ? width : this.moveDistance, height: vertical ? this.moveDistance : height }} />;
             }
-            const margin = (this.moveDistance-this.blockSize)/2;
-            return(
-                <View key={i} style = {{flexDirection: vertical?'column':'row'}}>
-                    <View style = {{[vertical?'height':'width']: margin}} />
-                        <Animated.View style = {{width: vertical?width:this.blockSize, height: vertical?this.blockSize:height, transform: [{[vertical?'scaleX':'scaleY']: this.state.scaleArr[i]}, {[vertical?'translateX':'translateY']: this.state.translateArr[i]}]}}>
-                            {this.props.renderRow(this.list[i+(loop?0:1)])}
-                        </Animated.View>
-                    <View style = {{[vertical?'height':'width']: margin}} />
+            const margin = (this.moveDistance - this.blockSize) / 2;
+            return (
+                <View key={i} style={{ flexDirection: vertical ? 'column' : 'row' }}>
+                    <View style={{ [vertical ? 'height' : 'width']: margin }} />
+                    <Animated.View style={{ width: vertical ? width : this.blockSize, height: vertical ? this.blockSize : height, transform: [{ [vertical ? 'scaleX' : 'scaleY']: this.state.scaleArr[i] }, { [vertical ? 'translateX' : 'translateY']: this.state.translateArr[i] }] }}>
+                        {this.props.renderRow(this.list[i + (loop ? 0 : 1)])}
+                    </Animated.View>
+                    <View style={{ [vertical ? 'height' : 'width']: margin }} />
                 </View>
-            )
-        })
+            );
+        });
     },
-    getAssistViews() {
-        const {list, loop, width, height, vertical} = this.props;
+    getAssistViews () {
+        const { list, loop, width, height, vertical } = this.props;
         const count = this.count + (loop ? 2 : 0);
-        const margin = (this.moveDistance-this.blockSize)/2;
+        const margin = (this.moveDistance - this.blockSize) / 2;
         const views = [];
-        for(let i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             views.push(
-                <View key = {i} style = {{flexDirection: vertical?'column':'row'}}>
-                    <View style = {{[vertical?'height':'width']: margin}} />
-                    <TouchableOpacity onPress = {() => this.props.onPress(list[loop ? (i+2)%this.count : i], loop ? (i+2)%this.count : i)}>
-                        <View style = {{width: vertical?width:this.blockSize, height: vertical?this.blockSize:height}} />
+                <View key={i} style={{ flexDirection: vertical ? 'column' : 'row' }}>
+                    <View style={{ [vertical ? 'height' : 'width']: margin }} />
+                    <TouchableOpacity onPress={() => this.props.onPress(list[loop ? (i + 2) % this.count : i], loop ? (i + 2) % this.count : i)}>
+                        <View style={{ width: vertical ? width : this.blockSize, height: vertical ? this.blockSize : height }} />
                     </TouchableOpacity>
-                    <View style = {{[vertical?'height':'width']: margin}} />
+                    <View style={{ [vertical ? 'height' : 'width']: margin }} />
                 </View>
             );
         }
         return views;
     },
-    scrollTo(index) {
-        const {vertical} = this.props;
+    scrollTo (index) {
+        const { vertical } = this.props;
         this.scrollTargetIndex = index;
-        this.assistScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * index, animated: true});
+        this.assistScroll.scrollTo({ [vertical ? 'y' : 'x']: this.moveDistance * index, animated: true });
     },
-    onScroll(e) {
-        const {loop, vertical} = this.props;
-        if(this.mainScroll && this.assistScroll) {
-            const val = e.nativeEvent.contentOffset[vertical?'y':'x'];
+    onScroll (e) {
+        const { loop, vertical } = this.props;
+        if (this.mainScroll && this.assistScroll) {
+            const val = e.nativeEvent.contentOffset[vertical ? 'y' : 'x'];
             if (loop && Math.abs(val - ((this.count + 1) * this.moveDistance)) < 0.5) {
-                this.mainScroll.scrollTo({[vertical?'y':'x']: this.moveDistance + this.offset, animated: false});
-                this.assistScroll.scrollTo({[vertical?'y':'x']: this.moveDistance, animated: false});
+                this.mainScroll.scrollTo({ [vertical ? 'y' : 'x']: this.moveDistance + this.offset, animated: false });
+                this.assistScroll.scrollTo({ [vertical ? 'y' : 'x']: this.moveDistance, animated: false });
             } else if (loop && Math.abs(val) < 0.1) {
-                this.mainScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * this.count + this.offset, animated: false});
-                this.assistScroll.scrollTo({[vertical?'y':'x']: this.moveDistance * this.count, animated: false});
+                this.mainScroll.scrollTo({ [vertical ? 'y' : 'x']: this.moveDistance * this.count + this.offset, animated: false });
+                this.assistScroll.scrollTo({ [vertical ? 'y' : 'x']: this.moveDistance * this.count, animated: false });
             } else {
-                this.mainScroll.scrollTo({[vertical?'y':'x']: val + this.offset, animated: false});
+                this.mainScroll.scrollTo({ [vertical ? 'y' : 'x']: val + this.offset, animated: false });
             }
             const currentPageFloat = val / this.moveDistance;
             this.cardAnimated(currentPageFloat);
         }
     },
-    cardAnimated(currentPageFloat) {
-        const {loop, list, width, height, vertical, ratio, onChange} = this.props;
-        const index = loop ? (Math.round(currentPageFloat)+2)%this.count : Math.round(currentPageFloat);
+    cardAnimated (currentPageFloat) {
+        const { loop, list, width, height, vertical, ratio, onChange } = this.props;
+        const index = loop ? (Math.round(currentPageFloat) + 2) % this.count : Math.round(currentPageFloat);
         if (this.lastChangeIndex !== index) {
             if (this.scrollTargetIndex == null) {
                 onChange && onChange(list[index], index);
@@ -145,7 +145,7 @@ module.exports = React.createClass({
             this.lastChangeIndex = index;
         }
 
-        for(let i = 0; i < this.count+4; i++) {
+        for (let i = 0; i < this.count + 4; i++) {
             let r = 0;
             const currentPageInt = parseInt(currentPageFloat);
             if (i == 2) {
@@ -160,46 +160,46 @@ module.exports = React.createClass({
                 r = currentPageFloat % 1;
             }
             const scale = ratio + ((1 - ratio) * r);
-            const translate = (vertical?width:height) * (1 - scale) / 8;
+            const translate = (vertical ? width : height) * (1 - scale) / 8;
             Animated.timing(this.state.scaleArr[i], {
                 toValue: scale,
-                duration: 0
+                duration: 0,
             }).start();
             Animated.timing(this.state.translateArr[i], {
                 toValue: translate,
-                duration: 0
+                duration: 0,
             }).start();
         }
     },
-    render() {
-        const {width, height, vertical} = this.props;
-        const totalWidth = (vertical?width:this.moveDistance)*this.list.length;
-        const totalHeight = (vertical?this.moveDistance:height)*this.list.length;
+    render () {
+        const { width, height, vertical } = this.props;
+        const totalWidth = (vertical ? width : this.moveDistance) * this.list.length;
+        const totalHeight = (vertical ? this.moveDistance : height) * this.list.length;
         return (
-            <View style={{width, height, overflow: 'hidden'}}>
+            <View style={{ width, height, overflow: 'hidden' }}>
                 <ScrollView
-                    horizontal = {!vertical}
-                    pointerEvents = 'none'
-                    ref = {ref => this.mainScroll = ref}
-                    showsHorizontalScrollIndicator = {false}
+                    horizontal={!vertical}
+                    pointerEvents='none'
+                    ref={ref => { this.mainScroll = ref; }}
+                    showsHorizontalScrollIndicator={false}
                     >
-                    {this.state.initialized ? this.getShowViews(): <View style = {{width: totalWidth, height: totalHeight}} />}
+                    {this.state.initialized ? this.getShowViews() : <View style={{ width: totalWidth, height: totalHeight }} />}
                 </ScrollView>
-                <View style = {[{position: 'absolute', left: 0, top: 0, backgroundColor:'transparent'}, vertical ? { height: (height-this.moveDistance)/2, width} : {width: (width-this.moveDistance)/2, height}]} />
-                <View style = {[{position: 'absolute', backgroundColor:'transparent'}, vertical ? {height: (height-this.moveDistance)/2, width, bottom: 0, left: 0} : {width: (width-this.moveDistance)/2, height, right: 0, top: 0}]} />
+                <View style={[{ position: 'absolute', left: 0, top: 0, backgroundColor:'transparent' }, vertical ? { height: (height - this.moveDistance) / 2, width } : { width: (width - this.moveDistance) / 2, height }]} />
+                <View style={[{ position: 'absolute', backgroundColor:'transparent' }, vertical ? { height: (height - this.moveDistance) / 2, width, bottom: 0, left: 0 } : { width: (width - this.moveDistance) / 2, height, right: 0, top: 0 }]} />
                 <ScrollView
-                    style = {vertical ? {position: 'absolute', height: this.moveDistance, width, top: (height-this.moveDistance)/2, left: 0} : {position: 'absolute', width: this.moveDistance, height, left: (width-this.moveDistance)/2, top: 0}}
-                    horizontal = {!vertical}
-                    pagingEnabled = {true}
-                    ref = {ref => this.assistScroll = ref}
-                    onScroll = {e => this.onScroll(e)}
-                    scrollEventThrottle = {16}
-                    showsHorizontalScrollIndicator = {false}
-                    showsVerticalScrollIndicator = {false}
+                    style={vertical ? { position: 'absolute', height: this.moveDistance, width, top: (height - this.moveDistance) / 2, left: 0 } : { position: 'absolute', width: this.moveDistance, height, left: (width - this.moveDistance) / 2, top: 0 }}
+                    horizontal={!vertical}
+                    pagingEnabled
+                    ref={ref => { this.assistScroll = ref; }}
+                    onScroll={e => this.onScroll(e)}
+                    scrollEventThrottle={16}
+                    showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}
                     >
                     {this.getAssistViews()}
                 </ScrollView>
             </View>
-        )
+        );
     },
 });
