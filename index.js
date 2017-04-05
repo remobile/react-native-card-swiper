@@ -34,11 +34,13 @@ module.exports = React.createClass({
 
         const scaleArr = [];
         const translateArr = [];
+        const opacityArr = [];
         for (let i = 0; i < this.count + 4; i++) {
             scaleArr.push(new Animated.Value(1));
             translateArr.push(new Animated.Value(0));
+            opacityArr.push(new Animated.Value(0));
         }
-        return { scaleArr, translateArr };
+        return { scaleArr, translateArr, opacityArr };
     },
     componentWillReceiveProps (nextProps) {
         const { list, width, height, vertical } = nextProps;
@@ -77,6 +79,7 @@ module.exports = React.createClass({
     },
     getShowViews () {
         const { loop, width, height, vertical } = this.props;
+        const { opacityArr, scaleArr, translateArr } = this.state;
         return this.list.map((o, i) => {
             if (!loop && (i < 1 || i >= this.list.length - 3)) {
                 return <View key={i} style={{ width: vertical ? width : this.moveDistance, height: vertical ? this.moveDistance : height }} />;
@@ -85,7 +88,7 @@ module.exports = React.createClass({
             return (
                 <View key={i} style={{ flexDirection: vertical ? 'column' : 'row' }}>
                     <View style={{ [vertical ? 'height' : 'width']: margin }} />
-                    <Animated.View style={{ width: vertical ? width : this.blockSize, height: vertical ? this.blockSize : height, transform: [{ [vertical ? 'scaleX' : 'scaleY']: this.state.scaleArr[i] }, { [vertical ? 'translateX' : 'translateY']: this.state.translateArr[i] }] }}>
+                    <Animated.View style={{ width: vertical ? width : this.blockSize, height: vertical ? this.blockSize : height, opacity: opacityArr[i], transform: [{ [vertical ? 'scaleX' : 'scaleY']: scaleArr[i] }, { [vertical ? 'translateX' : 'translateY']: translateArr[i] }] }}>
                         {this.props.renderRow(this.list[i + (loop ? 0 : 1)], loop ? (i + 1) % this.count : i - 1)}
                     </Animated.View>
                     <View style={{ [vertical ? 'height' : 'width']: margin }} />
@@ -135,6 +138,7 @@ module.exports = React.createClass({
     },
     cardAnimated (currentPageFloat) {
         const { loop, list, width, height, vertical, ratio, onChange } = this.props;
+        const { scaleArr, translateArr, opacityArr } = this.state;
         const index = loop ? (Math.round(currentPageFloat) + 2) % this.count : Math.round(currentPageFloat);
         if (this.lastChangeIndex !== index) {
             if (this.scrollTargetIndex == null) {
@@ -161,14 +165,9 @@ module.exports = React.createClass({
             }
             const scale = ratio + ((1 - ratio) * r);
             const translate = (vertical ? width : height) * (1 - scale) / 8;
-            Animated.timing(this.state.scaleArr[i], {
-                toValue: scale,
-                duration: 0,
-            }).start();
-            Animated.timing(this.state.translateArr[i], {
-                toValue: translate,
-                duration: 0,
-            }).start();
+            opacityArr[i].setValue(Math.pow(scale, 5));
+            scaleArr[i].setValue(scale);
+            translateArr[i].setValue(translate);
         }
     },
     render () {

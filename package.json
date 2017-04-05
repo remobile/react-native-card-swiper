@@ -1,6 +1,6 @@
 {
     "name": "@remobile/react-native-card-swiper",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "A react-native card swiper write in js",
     "main": "index.js",
     "author": {
