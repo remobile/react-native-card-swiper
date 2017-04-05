@@ -86,7 +86,7 @@ module.exports = React.createClass({
                 <View key={i} style={{ flexDirection: vertical ? 'column' : 'row' }}>
                     <View style={{ [vertical ? 'height' : 'width']: margin }} />
                     <Animated.View style={{ width: vertical ? width : this.blockSize, height: vertical ? this.blockSize : height, transform: [{ [vertical ? 'scaleX' : 'scaleY']: this.state.scaleArr[i] }, { [vertical ? 'translateX' : 'translateY']: this.state.translateArr[i] }] }}>
-                        {this.props.renderRow(this.list[i + (loop ? 0 : 1)])}
+                        {this.props.renderRow(this.list[i + (loop ? 0 : 1)], loop ? (i + 1) % this.count : i - 1)}
                     </Animated.View>
                     <View style={{ [vertical ? 'height' : 'width']: margin }} />
                 </View>

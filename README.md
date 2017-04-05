@@ -27,7 +27,7 @@ module.exports = React.createClass({
             vertical: false,
         };
     },
-    renderRow(obj) {
+    renderRow(obj, index) {
         return (
             <View style={styles.panel}>
                 <Text>{obj}</Text>
@@ -86,9 +86,9 @@ var styles = StyleSheet.create({
 - `height: PropTypes.number.required` card item height
 - `loop: propTypes.boolean` swiper is loop: default(false)
 - `vertical: propTypes.boolean` swiper derection is vertical: default(false)
-- `renderRow: PropTypes.func [args: data]` row render function
-- `onPress: PropTypes.func [args: data]` row press callback function
-- `onChange: PropTypes.func [args: data]` row change callback function
+- `renderRow: PropTypes.func [args: data, index]` row render function
+- `onPress: PropTypes.func [args: data, index]` row press callback function
+- `onChange: PropTypes.func [args: data, index]` row change callback function
 
 #### Method
 - `scrollTo(index)` scroll to index card
